@@ -1,5 +1,7 @@
 {
   "name": "ar-helloworld",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular"
 }

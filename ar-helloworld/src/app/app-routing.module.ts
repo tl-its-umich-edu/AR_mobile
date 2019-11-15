@@ -8,6 +8,10 @@ const routes: Routes = [
     path: 'ar-view',
     loadChildren: () => import('./ar-view/ar-view.module').then( m => m.ArViewPageModule)
   },
+  {
+    path: 'ar-view-ts',
+    loadChildren: () => import('./ar-view-ts/ar-view-ts.module').then( m => m.ArViewTsPageModule)
+  },
 ];
 
 @NgModule({
