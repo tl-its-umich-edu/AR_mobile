@@ -15,22 +15,6 @@ export class ArViewTsPage implements OnInit {
 
     require('aframe');
 
-    let hello: string = "Hello world from typescript!";
-    doSomething(hello);
+    
   }
-
-  ionViewDidEnter() {
-    //generateAFrameScene();
-  }
-}
-
-function doSomething(message: string) {
-  console.log(message);
-}
-
-function generateAFrameScene() {
-  let ionContent: Element = document.querySelector('ion-content');
-
-  let aScene: Element = document.createElement('a-scene');
-  ionContent.appendChild(aScene);
 }
