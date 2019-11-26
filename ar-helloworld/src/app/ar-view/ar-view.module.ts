@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+
 import { ArViewPageRoutingModule } from './ar-view-routing.module';
 
 import { ArViewPage } from './ar-view.page';
@@ -14,6 +16,9 @@ import { ArViewPage } from './ar-view.page';
     FormsModule,
     IonicModule,
     ArViewPageRoutingModule
+  ],
+  providers: [
+    AndroidPermissions
   ],
   declarations: [ArViewPage]
 })

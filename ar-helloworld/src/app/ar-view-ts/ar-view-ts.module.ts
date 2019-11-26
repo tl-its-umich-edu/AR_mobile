@@ -8,12 +8,17 @@ import { ArViewTsPageRoutingModule } from './ar-view-ts-routing.module';
 
 import { ArViewTsPage } from './ar-view-ts.page';
 
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
     ArViewTsPageRoutingModule
+  ],
+  providers: [
+    AndroidPermissions
   ],
   declarations: [ArViewTsPage],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

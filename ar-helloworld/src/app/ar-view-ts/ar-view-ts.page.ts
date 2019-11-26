@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { $ } from 'protractor';
 import { AFrame } from 'aframe';
+import { AndroidPermissions, AndroidPermissionResponse } from '@ionic-native/android-permissions/ngx';
 
 @Component({
   selector: 'app-ar-view-ts',
@@ -9,19 +10,26 @@ import { AFrame } from 'aframe';
 })
 export class ArViewTsPage implements OnInit {
 
-  constructor() { }
+  constructor(private androidPermissions: AndroidPermissions) {
+
+    // TODO: fix error here
+    // TypeError: Cannot read property 'androidPermissions' of undefined
+    // try this? https://www.youtube.com/watch?v=W47ZJ1vgqqI
+
+    // check/get camera permission
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.CAMERA)
+    .then( function(response: AndroidPermissionResponse) {
+      let hasCameraPerms: boolean = response.hasPermission;
+      if (!hasCameraPerms) {
+        this.androidPermissions.requestPermission(this.androidPermissions.PERMISSION.CAMERA);
+      }
+    })
+    .catch( function(failureCallBack) {
+      alert(failureCallBack);
+    });
+  }
 
   ngOnInit() {
-    require('aframe');
-    
-    document.getElementById('ar-container').innerHTML = `
-    <a-scene>
-      <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-      <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-      <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-      <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-      <a-sky color="#ECECEC"></a-sky>
-    </a-scene>
-    `;
+    require('aframe'); // initialize ar.js
   }
 }
