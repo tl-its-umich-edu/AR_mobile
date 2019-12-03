@@ -1,0 +1,7 @@
+{
+  "name": "AR Helloworld V2",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}
