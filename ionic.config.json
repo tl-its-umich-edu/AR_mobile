@@ -1,0 +1,7 @@
+{
+  "name": "AR_mobile",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}
