@@ -1,6 +1,5 @@
 window.onload = () => {
-    //var placesUrl = 'https://gist.githubusercontent.com/akim8/386cb2d8ad833adac5d23459301454ff/raw/3959538e5efd5baa4af401e16d2f8ddd07552c16/uofm-bus-stop-coordinates.json';
-    var placesUrl = 'https://gist.githubusercontent.com/akim8/951ad339edaead4a9f4a39f9b9321557/raw/e8e26a181fae3a59a01f524bd19e1d8dc7e7bd8b/data.json';
+    var placesUrl = 'https://gist.githubusercontent.com/akim8/386cb2d8ad833adac5d23459301454ff/raw/3959538e5efd5baa4af401e16d2f8ddd07552c16/uofm-bus-stop-coordinates.json';
 
     // get user location
     navigator.geolocation.getCurrentPosition(function (position) {
