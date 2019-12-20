@@ -23,7 +23,7 @@ inside the `<manifest>` tag in the AndroidManifest.xml file located at `platform
 
 If the file doesn't exist, you must create a build for android first to generate it.
 
-## Running in an android simulator
+## Running on an android device
 
 1. Make sure you have [JDK 1.8.x](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed. The download requires a login since it is legacy. <!-- http://bugmenot.com/view/oracle.com -->
 

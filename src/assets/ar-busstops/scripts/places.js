@@ -1,19 +1,24 @@
 window.onload = () => {
-    var placesUrl = 'https://gist.githubusercontent.com/akim8/386cb2d8ad833adac5d23459301454ff/raw/8edb56f2004aa71c5f82381a2b1901d2e90008dc/uofm-bus-stop-coordinates.json';
+    //var placesUrl = 'https://gist.githubusercontent.com/akim8/386cb2d8ad833adac5d23459301454ff/raw/3959538e5efd5baa4af401e16d2f8ddd07552c16/uofm-bus-stop-coordinates.json';
+    var placesUrl = 'https://gist.githubusercontent.com/akim8/951ad339edaead4a9f4a39f9b9321557/raw/e8e26a181fae3a59a01f524bd19e1d8dc7e7bd8b/data.json';
 
+    // get user location
     navigator.geolocation.getCurrentPosition(function (position) {
 
-        // add user coords to corner display
+        // debug info, display user coords, gps accuracy, and create google maps link
         document.getElementById('user-coords-lat').innerHTML = position.coords.latitude;
         document.getElementById('user-coords-lon').innerHTML = position.coords.longitude;
         document.getElementById('user-coords-acc').innerHTML = position.coords.accuracy;
         document.getElementById('user-location-link').href = "https://www.google.com/maps/search/?api=1&query=" + position.coords.latitude + "," + position.coords.longitude;
 
-        // get places data
+        // get bus stop locations, and on success do parsePlaces
         getPlaces(placesUrl, parsePlaces, position.coords)
-    });
+    },
+    function error(msg){alert('Please enable your GPS location feature.');},
+    {maximumAge:10000, timeout:5000, enableHighAccuracy: true});
 };
 
+// get data from url and on success, do callback with userCoords as arg
 // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
 function getPlaces(url, callback, userCoords) {
     var xhr = new XMLHttpRequest();
@@ -27,38 +32,66 @@ function getPlaces(url, callback, userCoords) {
 function xhrSuccess() { this.callback.apply(this, this.arguments); }
 function xhrError() { console.error(this.statusText); }
 
+// decide what bus stop nodes to display
 function parsePlaces(userCoords) {
 
-    var maxDistance = 1; // miles
-    var scaleFactor = 20; // size of dots
+    var maxDistance = 1; // how close bus stop needs to be to user to be displayed
+    var scaleFactor = 10; // size of dots
 
-    const scene = document.querySelector('a-scene');
     var places = JSON.parse(this.responseText);
 
+    // for each bus stop, if it is within the maxDistance, create a node for it
     places.forEach(function (element) {
-        var distance = distanceBetweenCoords(element.location.lat, element.location.lon, userCoords.latitude, userCoords.longitude);
-        console.log("Distance from user to " + element.name + ": " + distance.toFixed(1) + "mi");
+        var distance = distanceBetweenCoords(element.lat, element.lon, userCoords.latitude, userCoords.longitude);
+
+        // debug info
+        console.log("Distance from user to " + element.name + ": " + distance.toFixed(5) + "mi");
         document.getElementById('user-coords-display-text').innerHTML += "<br>Distance from user to " + element.name + ": " + distance.toFixed(5) + " mi";
 
         if (distance <= maxDistance) {
-            const latitude = element.location.lat;
-            const longitude = element.location.lon;
-            var scale = scaleFactor - distance * maxDistance * 100;
+            var scale = scaleFactor * ((maxDistance - distance) / maxDistance);
 
-            // create place in AR
+            createBusStopNode(element, scale);
 
-            const node = document.createElement('a-image');
-            node.setAttribute('gps-entity-place', `latitude: ${element.location.lat}; longitude: ${element.location.lon};`);
-            node.setAttribute('scale', `${scaleFactor} ${scaleFactor}`);
-            node.setAttribute('name', element.name);
-            node.setAttribute('src', 'images/bus-stop-sign.png');
-    
-            scene.appendChild(node);
-
+            // debug info
             console.log("Created " + element.name + " node!");
             document.getElementById('user-coords-display-text').innerHTML += "<br>Created " + element.name + " node!";
         }
     });
+}
+
+// add bus stop node to aframe scene
+function createBusStopNode(element, scale) {
+
+    const scene = document.querySelector('a-scene');
+    
+    // create node
+    let node = document.createElement('a-entity');
+    node.setAttribute('name', element.name);
+    node.setAttribute('gps-entity-place', `latitude: ${element.lat}; longitude: ${element.lon};`);
+    node.setAttribute('scale', `${scale} ${scale}`);
+    node.setAttribute('look-at', '#user');
+    scene.appendChild(node);
+    
+    // create sign image
+    let sign = document.createElement('a-image');
+    sign.setAttribute('src', 'images/bus-stop-sign.png');
+    sign.setAttribute('scale', '.65634675 1');
+    node.appendChild(sign);
+
+    // create sign id
+    let signId = document.createElement('a-text');
+    signId.setAttribute('value', `${element.id}`);
+    signId.setAttribute('position', '0.4 -0.3 10');
+    signId.setAttribute('align', 'right');
+    sign.appendChild(signId);
+
+    // TODO: GET SIGN TO REACT TO TOUCH EVENT
+    sign.addEventListener('click', function (evt) {
+        console.log(element.name);
+    });
+
+    return node;
 }
 
 // https://stackoverflow.com/a/365853
