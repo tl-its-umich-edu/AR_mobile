@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+
+  busServiceApiKey: 'PASTE YOUR BUS SERVICE API KEY HERE'
 };
 
 /*

@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { environment } from '../../environments/environment';
+import { stringify } from 'querystring';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-ar-busstops',
@@ -10,7 +13,10 @@ import { Geolocation } from '@ionic-native/geolocation/ngx';
 })
 export class ArBusstopsPage implements OnInit {
 
-  constructor(private platform: Platform, private androidPermissions: AndroidPermissions, private geolocation: Geolocation) {
+  url: SafeResourceUrl;
+  apiKey: string;
+
+  constructor(private platform: Platform, private androidPermissions: AndroidPermissions, private geolocation: Geolocation, private sanitizer: DomSanitizer) {
     if (this.platform.is('cordova')) {
       
       // camera permissions
@@ -33,10 +39,15 @@ export class ArBusstopsPage implements OnInit {
       }).catch((error) => {
         console.log('Error getting location', error);
       });
+
+      // get bus service api key
+
+      this.apiKey = environment.busServiceApiKey;
     }
   }
 
   ngOnInit() {
+    this.url = this.sanitizer.bypassSecurityTrustResourceUrl('/assets/ar-busstops/index.html?busServiceApiKey=' + this.apiKey);
   }
 
 }

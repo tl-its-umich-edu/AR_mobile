@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.ionic.starter.ardemo" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="io.ionic.starter.ardemo" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>AR_Demo</name>
     <description>An awesome Ionic/Cordova app.</description>
     <author email="hi@ionicframework.com" href="http://ionicframework.com/">Ionic Framework Team</author>
@@ -43,15 +43,14 @@
         <splash density="port-xhdpi" src="resources/android/splash/drawable-port-xhdpi-screen.png" />
         <splash density="port-xxhdpi" src="resources/android/splash/drawable-port-xxhdpi-screen.png" />
         <splash density="port-xxxhdpi" src="resources/android/splash/drawable-port-xxxhdpi-screen.png" />
-        <custom-config-file parent="/manifest" target="AndroidManifest.xml">
-            <uses-feature name="android.hardware.camera" />
-            <uses-feature name="android.hardware.camera.autofocus" />
-            <uses-feature name="android.hardware.camera2.full" />
-            <uses-feature name="android.hardware.camera2.autofocus" />
-            <uses-permission name="android.permission.CAMERA" />
-            <uses-permission name="android.permission.INTERNET" />
-            <uses-permission name="android.webkit.PermissionRequest" />
-        </custom-config-file>
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-feature android:name="android.hardware.camera" />
+            <uses-feature android:name="android.hardware.camera.autofocus" />
+            <uses-feature android:name="android.hardware.camera2.full" />
+            <uses-feature android:name="android.hardware.camera2.autofocus" />
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-permission android:name="android.webkit.PermissionRequest" />
+        </config-file>
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />

@@ -1,29 +1,28 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-	<meta charset='utf-8'>
-	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
-	<title>GeoAR.js demo</title>
-	<script src='https://aframe.io/releases/1.0.0/aframe.min.js'></script>
-	<script src='https://unpkg.com/ar.js@2.0.8/aframe/build/aframe-ar.min.js'></script>
-	<script src="https://unpkg.com/aframe-look-at-component@0.8.x/dist/aframe-look-at-component.min.js"></script>
-	<script src="scripts/places.js"></script>
-
-	<link rel="stylesheet" href="css/style.css">
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>GeoAR.js demo</title>
+    <script src='https://aframe.io/releases/1.0.0/aframe.min.js'></script>
+	<script src='https://unpkg.com/ar.js@2.1.4/aframe/build/aframe-ar.min.js'></script>
+	<script src="https://unpkg.com/aframe-look-at-component@^0.8/dist/aframe-look-at-component.min.js"></script>
 </head>
 
+<link rel="stylesheet" href="css/style.css">
 
-<body>
-	<a-scene
-		cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;'
-		raycaster="objects: [gps-entity-place];"
-		vr-mode-ui="enabled: false"
-		embedded arjs='debugUIEnabled: false;'
-		debug
+<!-- Dynamically add places from Javascript -->
+<script src="scripts/places.js"></script>
+
+<body style='margin: 0; overflow: hidden;'>
+    <a-scene
+        vr-mode-ui="enabled: false"
+		embedded
+		arjs="debugUIEnabled: false;"
+		renderer="logarithmicDepthBuffer: true;"
 		>
-		
-		<a-camera id="user" gps-camera="minDistance: 40;" rotation-reader></a-camera>
+
+		<a-camera id="user" gps-camera rotation-reader></a-camera>
 	</a-scene>
 
 	<div class="user-coords-display">
