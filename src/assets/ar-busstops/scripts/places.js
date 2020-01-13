@@ -3,7 +3,6 @@ window.onload = () => {
 
   // get user location
   navigator.geolocation.getCurrentPosition(function (position) {
-
     // debug info, display user coords, gps accuracy, and create google maps link
     document.getElementById('user-coords-lat').innerHTML = position.coords.latitude
     document.getElementById('user-coords-lon').innerHTML = position.coords.longitude
@@ -39,6 +38,8 @@ function parsePlaces (userCoords) {
   var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed
   var scaleFactor = 1 // how big the sign is
   var scaleDecayFactor = 0.05 // how much to shrink the sign by distance
+  var minScale = 20
+  var maxScale = 35
 
   var places = JSON.parse(this.responseText)
 
@@ -48,6 +49,8 @@ function parsePlaces (userCoords) {
 
     if (distance <= maxDistance) {
       var scale = scaleFactor * ((maxDistance - distance) / (maxDistance * scaleDecayFactor))
+      scale = Math.min(maxScale, scale)
+      scale = Math.max(minScale, scale)
 
       createBusStopNode(element, scale)
 
