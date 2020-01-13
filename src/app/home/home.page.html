@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Ionic Blank
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <section showWhen="android">
+    <p padding-horizontal>Point the device camera at a hiro marker to show a cube in AR.</p>
+
+    <ion-card>
+      <ion-list lines="none">
+        <ion-item [routerLink]="['/ar-view']" detail>
+          <ion-icon slot="start" name="aperture"></ion-icon>
+          <ion-label>AR Objects</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <p padding-horizontal>The app will load signs at bus stop locations around boyer.</p>
+
+    <ion-card>
+      <ion-list lines="none">
+        <ion-item [routerLink]="['/ar-busstops']" detail>
+          <ion-icon slot="start" name="aperture"></ion-icon>
+          <ion-label>AR Bus Stop Signs</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+  </section>
+</ion-content>
