@@ -14,13 +14,6 @@ window.onload = () => {
   },
   function error (msg) { console.log('Error retrieving position', error) },
   { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 })
-
-  // listen for compass errors
-  window.addEventListener('compassneedscalibration', e => {
-    // todo: calibration instructions
-    // does this function even fire ever?
-    console.log('compass uncalibrated')
-  }, true)
 }
 
 // get data from url and on success, do callback with userCoords as arg
@@ -123,8 +116,8 @@ function updateSignLines () {
     // set new sign line destination
     Array.from(document.getElementsByClassName('busstop-signline')).forEach(e => {
       var lineStartPosition = e.parentElement.getAttribute('position')
-      console.log(lineStartPosition.x, lineStartPosition.z, pos)
-      e.setAttribute('line', `start: 0, 0, 0; end: ${-lineStartPosition.x + pos.x} -1 ${-lineStartPosition.z + pos.z}; color: yellow; opacity: 0.5`)
+      var userPos = document.getElementById('user').getAttribute('position')
+      e.setAttribute('line', `start: 0, 0, 0; end: ${-lineStartPosition.x + userPos.x} -1 ${-lineStartPosition.z + userPos.z}; color: yellow; opacity: 0.5`)
     })
   }, err => {
     console.warn('ERROR(' + err.code + '): ' + err.message)
