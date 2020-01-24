@@ -14,6 +14,13 @@ window.onload = () => {
   },
   function error (msg) { console.log('Error retrieving position', error) },
   { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 })
+
+  // listen for compass errors
+  window.addEventListener('compassneedscalibration', e => {
+    // todo: calibration instructions
+    // does this function even fire ever?
+    console.log('compass uncalibrated')
+  }, true)
 }
 
 // get data from url and on success, do callback with userCoords as arg
@@ -52,23 +59,27 @@ function parsePlaces (userCoords) {
       scale = Math.min(maxScale, scale)
       scale = Math.max(minScale, scale)
 
-      createBusStopNode(element, scale)
+      createBusStopNode(element, scale, distance)
 
       // debug info
       console.log('Created ' + element.id + ' node! Distance: ' + distance.toFixed(5))
       document.getElementById('user-coords-display-text').innerHTML += '<br>Created ' + element.id + ' node! Distance: ' + distance.toFixed(5)
     }
   })
+
+  // react to position changes
+  updateSignLines()
 }
 
 // add bus stop node to aframe scene
-function createBusStopNode (element, scale) {
+function createBusStopNode (element, scale, distance) {
   const scene = document.querySelector('a-scene')
 
   // create node
   const node = document.createElement('a-entity')
-  node.setAttribute('name', element.name)
-  node.setAttribute('gps-entity-place-busstop', `latitude: ${element.lat}; longitude: ${element.lon};`)
+  node.setAttribute('id', `busstop-${element.id}`)
+  node.classList.add('busstop-node')
+  node.setAttribute('gps-entity-place', `latitude: ${element.lat}; longitude: ${element.lon};`)
   scene.appendChild(node)
 
   // create sign image
@@ -92,8 +103,13 @@ function createBusStopNode (element, scale) {
 
   // create sign line
   const signLine = document.createElement('a-entity')
-  signLine.setAttribute('line', 'start: 0, 0, 0; end: 0 -10 0; color: yellow; opacity: 0.5')
+  signLine.setAttribute('id', `busstop-${element.id}-signline`)
+  signLine.classList.add('busstop-signline')
+  signLine.setAttribute('line', 'start: 0, 0, 0; end: 0 -1 0; color: yellow; opacity: 0.5') // placeholder position, is updated with updateSignLines
   node.appendChild(signLine)
+
+  // create distance label
+  // todo
 
   // add touch event
   // todo
@@ -101,15 +117,35 @@ function createBusStopNode (element, scale) {
   return node
 }
 
+function updateSignLines () {
+  // _initWatchGPS from library used as reference https://github.com/jeromeetienne/AR.js/blob/master/aframe/src/location-based/gps-camera.js#L121
+  navigator.geolocation.watchPosition(pos => {
+    // set new sign line destination
+    Array.from(document.getElementsByClassName('busstop-signline')).forEach(e => {
+      var lineStartPosition = e.parentElement.getAttribute('position')
+      console.log(lineStartPosition.x, lineStartPosition.z, pos)
+      e.setAttribute('line', `start: 0, 0, 0; end: ${-lineStartPosition.x + pos.x} -1 ${-lineStartPosition.z + pos.z}; color: yellow; opacity: 0.5`)
+    })
+  }, err => {
+    console.warn('ERROR(' + err.code + '): ' + err.message)
+  }, {
+    enableHighAccuracy: true,
+    timeout: 27000,
+    maximumAge: 0
+  })
+}
+
+// utility functions
+
 // https://stackoverflow.com/a/365853
 function distanceBetweenCoords (lat1, lon1, lat2, lon2) {
   var earthRadiusMi = 3958.8
 
-  var dLat = degreesToRadians(lat2 - lat1)
-  var dLon = degreesToRadians(lon2 - lon1)
+  var dLat = degToRad(lat2 - lat1)
+  var dLon = degToRad(lon2 - lon1)
 
-  lat1 = degreesToRadians(lat1)
-  lat2 = degreesToRadians(lat2)
+  lat1 = degToRad(lat1)
+  lat2 = degToRad(lat2)
 
   var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2)
@@ -117,113 +153,6 @@ function distanceBetweenCoords (lat1, lon1, lat2, lon2) {
   return earthRadiusMi * c
 }
 
-function degreesToRadians (degrees) {
+function degToRad (degrees) {
   return degrees * Math.PI / 180
 }
-
-// update gps-entity-place component to include more functionality
-// original: https://github.com/jeromeetienne/AR.js/blob/master/aframe/src/location-based/gps-entity-place.js
-
-window.AFRAME.registerComponent('gps-entity-place-busstop', {
-  _cameraGps: null,
-  schema: {
-    latitude: {
-      type: 'number',
-      default: 0
-    },
-    longitude: {
-      type: 'number',
-      default: 0
-    }
-  },
-  init: function () {
-    window.addEventListener('gps-camera-origin-coord-set', function () {
-      if (!this._cameraGps) {
-        var camera = document.querySelector('[gps-camera]')
-        if (!camera.components['gps-camera']) {
-          console.error('gps-camera not initialized')
-          return
-        }
-        this._cameraGps = camera.components['gps-camera']
-      }
-
-      this._updatePosition()
-    }.bind(this))
-
-    this._positionXDebug = 0
-
-    window.dispatchEvent(new window.CustomEvent('gps-entity-place-added'))
-    console.debug('gps-entity-place-added')
-
-    this.debugUIAddedHandler = function () {
-      this.setDebugData(this.el)
-      window.removeEventListener('debug-ui-added', this.debugUIAddedHandler.bind(this))
-    }
-
-    window.addEventListener('debug-ui-added', this.debugUIAddedHandler.bind(this))
-  },
-
-  /**
-   * Update place position
-   * @returns {void}
-   */
-  _updatePosition: function () {
-    var position = { x: 0, y: 0, z: 0 }
-
-    // update position.x
-    var dstCoords = {
-      longitude: this.data.longitude,
-      latitude: this._cameraGps.originCoords.latitude
-    }
-
-    position.x = this._cameraGps.computeDistanceMeters(this._cameraGps.originCoords, dstCoords, true)
-    this._positionXDebug = position.x
-    position.x *= this.data.longitude > this._cameraGps.originCoords.longitude ? 1 : -1
-
-    // update position.z
-    dstCoords = {
-      longitude: this._cameraGps.originCoords.longitude,
-      latitude: this.data.latitude
-    }
-
-    position.z = this._cameraGps.computeDistanceMeters(this._cameraGps.originCoords, dstCoords, true)
-    position.z *= this.data.latitude > this._cameraGps.originCoords.latitude ? -1 : 1
-
-    // update element's position in 3D world
-    this.el.setAttribute('position', position)
-
-    // update line entity
-    // todo: add this to event listener so that entire function does not have to be copied from library
-    // todo: fix line end coords to update as user/sign position is updated
-    this.el.getElementsByTagName('a-entity')[0].setAttribute('line', `start: 0, 0, 0; end: ${position.x * -1} -10 ${position.z * -1}; color: yellow; opacity: 0.5`)
-  },
-
-  /**
-   * Set places distances from user on debug UI
-   * @returns {void}
-   */
-  setDebugData: function (element) {
-    var elements = document.querySelectorAll('.debug-distance')
-    elements.forEach(function (el) {
-      var distance = formatDistance(this._positionXDebug)
-      if (element.getAttribute('value') === el.getAttribute('value')) {
-        el.innerHTML = el.getAttribute('value') + ': ' + distance + 'far'
-      }
-    })
-  }
-})
-
-/**
- * Format distances string
- *
- * @param {String} distance
- */
-function formatDistance (distance) {
-  distance = distance.toFixed(0)
-
-  if (distance >= 1000) {
-    return (distance / 1000) + ' kilometers'
-  }
-
-  return distance + ' meters'
-};
