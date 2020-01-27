@@ -21,15 +21,12 @@ export class ArBusstopsPage {
   constructor(private platform: Platform, private androidPermissions: AndroidPermissions, private geolocation: Geolocation, private sanitizer: DomSanitizer, private location:Location) {
 
     if (this.platform.is('cordova')) {
-      let hasCamPerms:boolean;
-      let hasGeoPerms:boolean;
-
-      // get device permissions
       this.platform.ready().then(() => {
+        // request camera and geolocation permissions before loading iframe
         this.androidPermissions.requestPermissions([this.androidPermissions.PERMISSION.CAMERA, this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION]).then((result) => {
           console.log('camera permission:', this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.CAMERA));
           console.log('geolocation permission:', this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION));
-          this.loadIframe = result;
+          this.loadIframe = result; // enable iframe if permissions enabled
           if (result) {
             // get bus service api key
             this.apiKey = environment.busServiceApiKey;
@@ -39,6 +36,11 @@ export class ArBusstopsPage {
         });
       });
     }
+  }
+
+  ionViewWillLeave() {
+    // disable iframe to free system resources
+    this.loadIframe = false;
   }
 
 }
