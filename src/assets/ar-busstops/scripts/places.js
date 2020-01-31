@@ -39,7 +39,7 @@ function parsePlaces (userCoords) {
   var scaleFactor = 1 // how big the sign is
   var scaleDecayFactor = 0.05 // how much to shrink the sign by distance
   var minScale = 20
-  var maxScale = 35
+  var maxScale = 30
 
   var places = JSON.parse(this.responseText)
 
@@ -52,7 +52,7 @@ function parsePlaces (userCoords) {
       scale = Math.min(maxScale, scale)
       scale = Math.max(minScale, scale)
 
-      createBusStopNode(element, scale, distance)
+      createBusStopNode(element, scale, userCoords)
 
       // debug info
       console.log('Created ' + element.id + ' node! Distance: ' + distance.toFixed(5))
@@ -65,7 +65,7 @@ function parsePlaces (userCoords) {
 }
 
 // add bus stop node to aframe scene
-function createBusStopNode (element, scale, distance) {
+function createBusStopNode (element, scale, userCoords) {
   const scene = document.querySelector('a-scene')
 
   // create node
@@ -82,7 +82,7 @@ function createBusStopNode (element, scale, distance) {
   sign.setAttribute('src', 'images/bus-stop-sign.png')
   sign.setAttribute('position', `0 ${imageHeight * scale / 2} 0`)
   sign.setAttribute('scale', `${imageWidth * scale} ${imageHeight * scale}`)
-  sign.setAttribute('opacity', 0.5)
+  sign.setAttribute('opacity', 1)
   sign.setAttribute('look-at', '#user')
   node.appendChild(sign)
 
@@ -91,7 +91,7 @@ function createBusStopNode (element, scale, distance) {
   signId.setAttribute('value', `${element.id}`)
   signId.setAttribute('width', 8)
   signId.setAttribute('align', 'center')
-  signId.setAttribute('position', '0 -0.32 0')
+  signId.setAttribute('position', '0 -0.32 1')
   sign.appendChild(signId)
 
   // create sign line
@@ -101,8 +101,31 @@ function createBusStopNode (element, scale, distance) {
   signLine.setAttribute('line', 'start: 0, 0, 0; end: 0 -1 0; color: yellow; opacity: 0.5') // placeholder position, is updated with updateSignLines
   node.appendChild(signLine)
 
+  // create backdrop for labels
+  const signLabelBackdrop = document.createElement('a-plane')
+  signLabelBackdrop.setAttribute('material', 'color: #000; opacity: 0.7;')
+  signLabelBackdrop.setAttribute('width', '20')
+  signLabelBackdrop.setAttribute('height', '8')
+  signLabelBackdrop.setAttribute('position', '0 0.75 0')
+  signLabelBackdrop.setAttribute('scale', `${1 / scale} ${1 / scale} ${1 / scale}`)
+  sign.appendChild(signLabelBackdrop)
+
   // create distance label
-  // todo
+  var distanceMeters = distanceBetweenCoords(element.lat, element.lon, userCoords.latitude, userCoords.longitude, 'meters').toFixed(1)
+  const signDistanceLabel = document.createElement('a-text')
+  signDistanceLabel.setAttribute('value', `${distanceMeters} m`)
+  signDistanceLabel.setAttribute('width', 80)
+  signDistanceLabel.setAttribute('align', 'center')
+  signDistanceLabel.setAttribute('position', '0 1.7 0')
+  signLabelBackdrop.appendChild(signDistanceLabel)
+
+  // create walking time estimate label
+  const signTimeLabel = document.createElement('a-text')
+  signTimeLabel.setAttribute('value', `${timeToWalk(distanceMeters).toFixed(1)} min`)
+  signTimeLabel.setAttribute('width', 80)
+  signTimeLabel.setAttribute('align', 'center')
+  signTimeLabel.setAttribute('position', '0 -1.7 0')
+  signLabelBackdrop.appendChild(signTimeLabel)
 
   // add touch event
   // todo
@@ -131,8 +154,16 @@ function updateSignLines () {
 // utility functions
 
 // https://stackoverflow.com/a/365853
-function distanceBetweenCoords (lat1, lon1, lat2, lon2) {
-  var earthRadiusMi = 3958.8
+function distanceBetweenCoords (lat1, lon1, lat2, lon2, units = 'miles') {
+  var earthRadius
+
+  switch (units) {
+    case 'miles':
+      earthRadius = 3958.8
+      break
+    case 'meters':
+      earthRadius = 6.3781 * Math.pow(10, 6)
+  }
 
   var dLat = degToRad(lat2 - lat1)
   var dLon = degToRad(lon2 - lon1)
@@ -143,9 +174,14 @@ function distanceBetweenCoords (lat1, lon1, lat2, lon2) {
   var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2)
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return earthRadiusMi * c
+  return earthRadius * c
 }
 
 function degToRad (degrees) {
   return degrees * Math.PI / 180
+}
+
+function timeToWalk (meters) {
+  var walkTimeMin = 84 // reasonable time in minutes to walk 1 meter
+  return parseFloat(meters) / walkTimeMin
 }
