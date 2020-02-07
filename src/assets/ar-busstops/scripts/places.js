@@ -1,51 +1,57 @@
 window.onload = () => {
-  var placesUrl = 'https://dev-bus-service.webplatformsunpublished.umich.edu/bus/stops?key=' + new URLSearchParams(window.location.search).get('busServiceApiKey')
-
   // get user location
   navigator.geolocation.getCurrentPosition(function (position) {
     // debug info, display user coords, gps accuracy, and create google maps link
     document.getElementById('user-coords-lat').innerHTML = position.coords.latitude
-    document.getElementById('user-coords-lon').innerHTML = position.coords.longitude
+    document.getElementById('user-coords-lng').innerHTML = position.coords.longitude
     document.getElementById('user-coords-acc').innerHTML = position.coords.accuracy
     document.getElementById('user-location-link').href = 'https://www.google.com/maps/search/?api=1&query=' + position.coords.latitude + ',' + position.coords.longitude
 
+    /*
+    // log user position
+    console.log('User coordinates: ', position.coords.latitude, position.coords.longitude)
+    console.log('GPS accuracy (meters): ', position.coords.accuracy)
+    */
+
     // get bus stop locations, and on success do parsePlaces
-    getPlaces(placesUrl, parsePlaces, position.coords)
+    fetchPlaces(position.coords)
   },
   function error (msg) { console.log('Error retrieving position', error) },
   { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 })
+
+  /*
+  // log rotation of device
+  var userRotation = document.getElementById('user').getAttribute('rotation')
+  setInterval(function () {
+    console.log('User rotation: ', userRotation.x, userRotation.y)
+  }, 3000)
+  */
 }
 
-// get data from url and on success, do callback with userCoords as arg
-// https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
-function getPlaces (url, callback, userCoords) {
-  var xhr = new window.XMLHttpRequest()
-  xhr.callback = callback
-  xhr.arguments = Array.prototype.slice.call(arguments, 2)
-  xhr.onload = xhrSuccess
-  xhr.onerror = xhrError
-  xhr.open('GET', url, true)
-  xhr.send(null)
-}
-function xhrSuccess () { this.callback.apply(this, this.arguments) }
-function xhrError () {
-  console.error(this.statusText)
-  console.log(this.responseText)
+// fetch data from url and on success, do callback with userCoords as arg=
+function fetchPlaces (userCoords) {
+  var placesUrl = 'https://dev-bus-service.webplatformsunpublished.umich.edu/bus/stops?key=' + new URLSearchParams(window.location.search).get('busServiceApiKey')
+  fetch(placesUrl)
+  .then(r => {
+    // parsePlaces(userCoords, r.json())
+    return r.json()
+  })
+  .then(json => {
+    parsePlaces(userCoords, json)
+  })
 }
 
 // decide what bus stop nodes to display
-function parsePlaces (userCoords) {
+function parsePlaces (userCoords, busStops) {
   var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed
   var scaleFactor = 1 // how big the sign is
-  var scaleDecayFactor = 0.05 // how much to shrink the sign by distance
-  var minScale = 20
-  var maxScale = 30
-
-  var places = JSON.parse(this.responseText)
+  var scaleDecayFactor = 0.07 // how much to shrink the sign by distance
+  var minScale = 15
+  var maxScale = 25
 
   // for each bus stop, if it is within the maxDistance, create a node for it
-  places.forEach(function (element) {
-    var distance = distanceBetweenCoords(element.lat, element.lon, userCoords.latitude, userCoords.longitude)
+  busStops.forEach(function (element) {
+    var distance = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude)
 
     if (distance <= maxDistance) {
       var scale = scaleFactor * ((maxDistance - distance) / (maxDistance * scaleDecayFactor))
@@ -55,7 +61,9 @@ function parsePlaces (userCoords) {
       createBusStopNode(element, scale, userCoords)
 
       // debug info
-      console.log('Created ' + element.id + ' node! Distance: ' + distance.toFixed(5))
+      console.log('Created ' + element.id + ' node! Distance: ' + distance.toFixed(5) + 'mi')
+      console.log('Bus stop coordinates: ', element.lat, element.lng)
+
       document.getElementById('user-coords-display-text').innerHTML += '<br>Created ' + element.id + ' node! Distance: ' + distance.toFixed(5)
     }
   })
@@ -72,7 +80,7 @@ function createBusStopNode (element, scale, userCoords) {
   const node = document.createElement('a-entity')
   node.setAttribute('id', `busstop-${element.id}`)
   node.classList.add('busstop-node')
-  node.setAttribute('gps-entity-place', `latitude: ${element.lat}; longitude: ${element.lon};`)
+  node.setAttribute('gps-entity-place', `latitude: ${element.lat}; longitude: ${element.lng};`)
   scene.appendChild(node)
 
   // create sign image
@@ -82,7 +90,7 @@ function createBusStopNode (element, scale, userCoords) {
   sign.setAttribute('src', 'images/bus-stop-sign.png')
   sign.setAttribute('position', `0 ${imageHeight * scale / 2} 0`)
   sign.setAttribute('scale', `${imageWidth * scale} ${imageHeight * scale}`)
-  sign.setAttribute('opacity', 1)
+  sign.setAttribute('opacity', 0.5) //! set to 1 for proper opacity
   sign.setAttribute('look-at', '#user')
   node.appendChild(sign)
 
@@ -103,7 +111,7 @@ function createBusStopNode (element, scale, userCoords) {
 
   // create backdrop for labels
   const signLabelBackdrop = document.createElement('a-plane')
-  signLabelBackdrop.setAttribute('material', 'color: #000; opacity: 0.7;')
+  signLabelBackdrop.setAttribute('material', 'color: #000; opacity: 0.2;') //! set opacity to 0.7 for proper color
   signLabelBackdrop.setAttribute('width', '20')
   signLabelBackdrop.setAttribute('height', '8')
   signLabelBackdrop.setAttribute('position', '0 0.75 0')
@@ -111,7 +119,7 @@ function createBusStopNode (element, scale, userCoords) {
   sign.appendChild(signLabelBackdrop)
 
   // create distance label
-  var distanceMeters = distanceBetweenCoords(element.lat, element.lon, userCoords.latitude, userCoords.longitude, 'meters').toFixed(1)
+  var distanceMeters = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude, 'meters').toFixed(1)
   const signDistanceLabel = document.createElement('a-text')
   signDistanceLabel.setAttribute('value', `${distanceMeters} m`)
   signDistanceLabel.setAttribute('width', 80)
