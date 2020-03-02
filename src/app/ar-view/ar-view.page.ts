@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -11,24 +10,22 @@ import { environment } from '../../environments/environment';
 })
 export class ArViewPage {
 
-  url: SafeResourceUrl;
   apiKey: string;
   loadIframe = false;
 
-  constructor(private platform: Platform, private androidPermissions: AndroidPermissions,private sanitizer: DomSanitizer) {
+  constructor(private platform: Platform, private androidPermissions: AndroidPermissions) {
 
-    if (this.platform.is('cordova')) {
+    if (this.platform.is('cordova')) { // running in native app
       this.platform.ready().then(() => {
         // request camera permissions before loading iframe
         this.androidPermissions.requestPermissions([this.androidPermissions.PERMISSION.CAMERA]).then((result) => {
           console.log('camera permission:', this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.CAMERA));
           this.loadIframe = result; // enable iframe if permissions enabled
-          if (result) {
-            // init iframe
-            this.url = this.sanitizer.bypassSecurityTrustResourceUrl('assets/ar/index.html');
-          }
         });
       });
+    }
+    else { // running from browser
+      this.loadIframe = true;
     }
   }
 
