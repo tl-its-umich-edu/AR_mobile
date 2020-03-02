@@ -19,6 +19,7 @@
     "@angular/platform-browser": "~8.1.2",
     "@angular/platform-browser-dynamic": "~8.1.2",
     "@angular/router": "~8.1.2",
+    "@angular/service-worker": "~8.1.2",
     "@ionic-native/android-permissions": "^5.19.0",
     "@ionic-native/core": "^5.19.0",
     "@ionic-native/geolocation": "^5.19.0",
