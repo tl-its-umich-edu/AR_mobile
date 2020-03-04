@@ -72,3 +72,5 @@ results.
 `$ ionic cordova run android --device --no-build`
 
 `$ adb devices`
+
+`ionic build --prod && firebase deploy`

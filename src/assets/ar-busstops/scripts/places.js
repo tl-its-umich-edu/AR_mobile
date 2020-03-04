@@ -1,62 +1,37 @@
-window.onload = () => {
+window.onload = () => { // run asap
+  window.addEventListener('message', busStopLocationsReceived, false);
+}
+
+window.addEventListener('load', e => { // run once page is fully loaded
+  window.parent.postMessage('ready', '*');
+});
+
+function busStopLocationsReceived(e) {
   // get user location
   navigator.geolocation.getCurrentPosition(function (position) {
+    parsePlaces(position.coords, e.data)
+
     // debug info, display user coords, gps accuracy, and create google maps link
     document.getElementById('user-coords-lat').innerHTML = position.coords.latitude
     document.getElementById('user-coords-lng').innerHTML = position.coords.longitude
     document.getElementById('user-coords-acc').innerHTML = position.coords.accuracy
     document.getElementById('user-location-link').href = 'https://www.google.com/maps/search/?api=1&query=' + position.coords.latitude + ',' + position.coords.longitude
-
-    /*
-    // log user position
-    console.log('User coordinates: ', position.coords.latitude, position.coords.longitude)
-    console.log('GPS accuracy (meters): ', position.coords.accuracy)
-    */
-
-    // get bus stop locations, and on success do parsePlaces
-    fetchPlaces(position.coords)
   },
   function error (msg) { console.log('Error retrieving position', error) },
   { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 })
-
-  /*
-  // log rotation of device
-  var userRotation = document.getElementById('user').getAttribute('rotation')
-  setInterval(function () {
-    console.log('User rotation: ', userRotation.x, userRotation.y)
-  }, 3000)
-  */
-}
-
-// fetch data from url and on success, do callback with userCoords as arg=
-function fetchPlaces (userCoords) {
-  var placesUrl = 'https://dev-bus-service.webplatformsunpublished.umich.edu/bus/stops?key=' + new URLSearchParams(window.location.search).get('busServiceApiKey')
-  fetch(placesUrl)
-  .then(r => {
-    // parsePlaces(userCoords, r.json())
-    return r.json()
-  })
-  .then(json => {
-    parsePlaces(userCoords, json)
-  })
 }
 
 // decide what bus stop nodes to display
 function parsePlaces (userCoords, busStops) {
   var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed
   var scaleFactor = 1 // how big the sign is
-  var scaleDecayFactor = 0.07 // how much to shrink the sign by distance
-  var minScale = 15
-  var maxScale = 25
 
   // for each bus stop, if it is within the maxDistance, create a node for it
   busStops.forEach(function (element) {
     var distance = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude)
 
     if (distance <= maxDistance) {
-      var scale = scaleFactor * ((maxDistance - distance) / (maxDistance * scaleDecayFactor))
-      scale = Math.min(maxScale, scale)
-      scale = Math.max(minScale, scale)
+      var scale = scaleFactor // todo: tweak scaling here
 
       createBusStopNode(element, scale, userCoords)
 
