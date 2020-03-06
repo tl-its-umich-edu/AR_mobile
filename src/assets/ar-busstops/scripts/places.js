@@ -1,10 +1,10 @@
 window.onload = () => { // run asap
-  window.addEventListener('message', busStopLocationsReceived, false);
+  window.addEventListener('message', busStopLocationsReceived, false)
 }
 
 window.addEventListener('load', e => { // run once page is fully loaded
-  window.parent.postMessage('ready', '*');
-});
+  window.parent.postMessage('ready', '*')
+})
 
 function busStopLocationsReceived(e) {
   // get user location
@@ -42,9 +42,6 @@ function parsePlaces (userCoords, busStops) {
       document.getElementById('user-coords-display-text').innerHTML += '<br>Created ' + element.id + ' node! Distance: ' + distance.toFixed(5)
     }
   })
-
-  // react to position changes
-  updateSignLines()
 }
 
 // add bus stop node to aframe scene
@@ -77,13 +74,6 @@ function createBusStopNode (element, scale, userCoords) {
   signId.setAttribute('position', '0 -0.32 1')
   sign.appendChild(signId)
 
-  // create sign line
-  const signLine = document.createElement('a-entity')
-  signLine.setAttribute('id', `busstop-${element.id}-signline`)
-  signLine.classList.add('busstop-signline')
-  signLine.setAttribute('line', 'start: 0, 0, 0; end: 0 -1 0; color: yellow; opacity: 0.5') // placeholder position, is updated with updateSignLines
-  node.appendChild(signLine)
-
   // create backdrop for labels
   const signLabelBackdrop = document.createElement('a-plane')
   signLabelBackdrop.setAttribute('material', 'color: #000; opacity: 0.2;') //! set opacity to 0.7 for proper color
@@ -114,24 +104,6 @@ function createBusStopNode (element, scale, userCoords) {
   // todo
 
   return node
-}
-
-function updateSignLines () {
-  // _initWatchGPS from library used as reference https://github.com/jeromeetienne/AR.js/blob/master/aframe/src/location-based/gps-camera.js#L121
-  navigator.geolocation.watchPosition(pos => {
-    // set new sign line destination
-    Array.from(document.getElementsByClassName('busstop-signline')).forEach(e => {
-      var lineStartPosition = e.parentElement.getAttribute('position')
-      var userPos = document.getElementById('user').getAttribute('position')
-      e.setAttribute('line', `start: 0, 0, 0; end: ${-lineStartPosition.x + userPos.x} -1 ${-lineStartPosition.z + userPos.z}; color: yellow; opacity: 0.5`)
-    })
-  }, err => {
-    console.warn('ERROR(' + err.code + '): ' + err.message)
-  }, {
-    enableHighAccuracy: true,
-    timeout: 27000,
-    maximumAge: 0
-  })
 }
 
 // utility functions
