@@ -24,14 +24,13 @@ function busStopLocationsReceived(e) {
 // decide what bus stop nodes to display
 function parsePlaces (userCoords, busStops) {
   var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed
-  var scaleFactor = 1 // how big the sign is
 
   // for each bus stop, if it is within the maxDistance, create a node for it
   busStops.forEach(function (element) {
     var distance = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude)
 
     if (distance <= maxDistance) {
-      var scale = scaleFactor // todo: tweak scaling here
+      var scale = 10000 * (Math.pow(distance, 2.5) / 5) + 10
 
       createBusStopNode(element, scale, userCoords)
 
@@ -71,16 +70,17 @@ function createBusStopNode (element, scale, userCoords) {
   signId.setAttribute('value', `${element.id}`)
   signId.setAttribute('width', 8)
   signId.setAttribute('align', 'center')
-  signId.setAttribute('position', '0 -0.32 1')
+  signId.setAttribute('position', '0 -0.32 0')
   sign.appendChild(signId)
 
   // create backdrop for labels
   const signLabelBackdrop = document.createElement('a-plane')
+  const signLabelScale = 0.075
   signLabelBackdrop.setAttribute('material', 'color: #000; opacity: 0.2;') //! set opacity to 0.7 for proper color
   signLabelBackdrop.setAttribute('width', '20')
   signLabelBackdrop.setAttribute('height', '8')
-  signLabelBackdrop.setAttribute('position', '0 0.75 0')
-  signLabelBackdrop.setAttribute('scale', `${1 / scale} ${1 / scale} ${1 / scale}`)
+  signLabelBackdrop.setAttribute('position', `0 0.9 0`)
+  signLabelBackdrop.setAttribute('scale', `${signLabelScale} ${signLabelScale} ${signLabelScale}`)
   sign.appendChild(signLabelBackdrop)
 
   // create distance label

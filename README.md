@@ -73,4 +73,6 @@ results.
 
 `$ adb devices`
 
-`ionic build --prod && firebase deploy`
+`$ ionic build --prod && firebase deploy`
+
+`$ ./ngrok http 8100 -host-header="localhost:8100"`
