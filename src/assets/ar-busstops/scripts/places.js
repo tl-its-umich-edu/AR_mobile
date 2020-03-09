@@ -1,6 +1,10 @@
 (function() {
+  var busStops = []
+  var displayedBusStopIds = []
+
   window.onload = () => { // run asap
     window.addEventListener('message', busStopLocationsReceived, false)
+    watchUserPosition()
   }
 
   window.addEventListener('load', e => { // run once page is fully loaded
@@ -8,32 +12,33 @@
   })
 
   function busStopLocationsReceived(e) {
-    // get user location
-    navigator.geolocation.getCurrentPosition(function (position) {
-      parsePlaces(position.coords, e.data)
+    busStops = e.data
 
+    // get user location
+    navigator.geolocation.getCurrentPosition(pos => {
       // debug info, display user coords, gps accuracy, and create google maps link
-      document.getElementById('user-coords-lat').innerHTML = position.coords.latitude
-      document.getElementById('user-coords-lng').innerHTML = position.coords.longitude
-      document.getElementById('user-coords-acc').innerHTML = position.coords.accuracy
-      document.getElementById('user-location-link').href = 'https://www.google.com/maps/search/?api=1&query=' + position.coords.latitude + ',' + position.coords.longitude
+      document.getElementById('user-coords-lat').innerHTML = pos.coords.latitude
+      document.getElementById('user-coords-lng').innerHTML = pos.coords.longitude
+      document.getElementById('user-coords-acc').innerHTML = pos.coords.accuracy
+      document.getElementById('user-location-link').href = 'https://www.google.com/maps/search/?api=1&query=' + pos.coords.latitude + ',' + pos.coords.longitude
     },
     function error (msg) { console.log('Error retrieving position', error) },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 })
   }
 
   // decide what bus stop nodes to display
-  function parsePlaces (userCoords, busStops) {
+  function parsePlaces (userCoords) {
+    console.log(userCoords)
     var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed
 
-    // for each bus stop, if it is within the maxDistance, create a node for it
-    busStops.forEach(function (element) {
+    // for each bus stop, if it is within the maxDistance and isn't already displayed, create a node for it
+    busStops.forEach(element => {
       var distance = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude)
 
-      if (distance <= maxDistance) {
+      if (distance <= maxDistance && displayedBusStopIds.find(id => id == element.id) == undefined) {
         var scale = 10000 * (Math.pow(distance, 2.5) / 5) + 10
-
         createBusStopNode(element, scale, userCoords)
+        displayedBusStopIds.push(element.id)
 
         // debug info
         console.log('Created ' + element.id + ' node! Distance: ' + distance.toFixed(5) + 'mi')
@@ -107,6 +112,20 @@
     return node
   }
 
+  function watchUserPosition() {
+    navigator.geolocation.watchPosition(pos => {
+      parsePlaces(pos.coords)
+      // todo: remove bus stops that are out of range
+      // todo: update info of bus stops that are already created
+    }, err => {
+      console.warn('ERROR(' + err.code + '): ' + err.message)
+    }, {
+      enableHighAccuracy: true,
+      timeout: 27000,
+      maximumAge: 0
+    })
+  }
+
   // utility functions
 
   // https://stackoverflow.com/a/365853
@@ -138,7 +157,7 @@
   }
 
   function timeToWalk (meters) {
-    var walkTimeMin = 84 // reasonable time in minutes to walk 1 meter
-    return parseFloat(meters) / walkTimeMin
+    var metersPerMinute = 80 // human walking speed
+    return parseFloat(meters) / metersPerMinute
   }
 })()
