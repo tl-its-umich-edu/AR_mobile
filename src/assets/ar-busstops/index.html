@@ -5,8 +5,8 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>GeoAR.js demo</title>
     <script src='https://aframe.io/releases/1.0.0/aframe.min.js'></script>
-	<script src='https://unpkg.com/ar.js@2.1.4/aframe/build/aframe-ar.min.js'></script>
-	<script src="https://unpkg.com/aframe-look-at-component@^0.8/dist/aframe-look-at-component.min.js"></script>
+    <script src='https://unpkg.com/ar.js@2.2.2/aframe/build/aframe-ar.min.js'></script>
+    <script src="https://unpkg.com/aframe-look-at-component@^0.8/dist/aframe-look-at-component.min.js"></script>
 </head>
 
 <link rel="stylesheet" href="css/style.css">
@@ -17,25 +17,26 @@
 <body style='margin: 0; overflow: hidden;'>
     <a-scene
         vr-mode-ui="enabled: false"
-		embedded
-		arjs="debugUIEnabled: false;"
-		renderer="logarithmicDepthBuffer: true;"
-		>
+        embedded
+        arjs="debugUIEnabled: false;"
+        renderer="logarithmicDepthBuffer: true;"
+        >
 
-		<a-camera id="user" gps-camera rotation-reader></a-camera>
-	</a-scene>
+        <a-camera id="user" gps-camera rotation-reader></a-camera>
+    </a-scene>
 
-	<div class="user-coords-display">
-		<p>
-			<a id="user-location-link" target="_blank">
-				Lat: <span id="user-coords-lat">?</span>
-				Lon: <span id="user-coords-lng">?</span>
-				Acc: <span id="user-coords-acc">?</span>m
-			</a>
-		</p>
-		<details>
-			<summary>Debug Info</summary>
-			<p id="user-coords-display-text"></p>
-		</details>
-	</div>
+    <div id="debug-panel" class="hide-me">
+        <p>
+            <a id="user-location-link" target="_blank">
+                Lat: <span id="user-coords-lat">?</span>
+                Lon: <span id="user-coords-lng">?</span>
+                Loc Acc: <span id="user-coords-acc">?</span>m
+                Comp Acc: <span id="user-comp-acc">?</span>
+            </a>
+        </p>
+        <details>
+            <summary>Debug Info</summary>
+            <p id="user-coords-display-text"></p>
+        </details>
+    </div>
 </body>

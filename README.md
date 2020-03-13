@@ -76,3 +76,5 @@ results.
 `$ ionic build --prod && firebase deploy`
 
 `$ ./ngrok http 8100 -host-header="localhost:8100"`
+
+`$ ng run app:serve --port=8100 --disable-host-check`

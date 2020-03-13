@@ -1,10 +1,12 @@
 (function() {
+  let debug = true
+
   var busStops = []
   var displayedBusStopIds = []
 
   window.onload = () => { // run asap
     window.addEventListener('message', busStopLocationsReceived, false)
-    watchUserPosition()
+    enableDebug()
   }
 
   window.addEventListener('load', e => { // run once page is fully loaded
@@ -14,43 +16,58 @@
   function busStopLocationsReceived(e) {
     busStops = e.data
 
-    // get user location
+    // parse immediatly
     navigator.geolocation.getCurrentPosition(pos => {
-      // debug info, display user coords, gps accuracy, and create google maps link
-      document.getElementById('user-coords-lat').innerHTML = pos.coords.latitude
-      document.getElementById('user-coords-lng').innerHTML = pos.coords.longitude
-      document.getElementById('user-coords-acc').innerHTML = pos.coords.accuracy
-      document.getElementById('user-location-link').href = 'https://www.google.com/maps/search/?api=1&query=' + pos.coords.latitude + ',' + pos.coords.longitude
-    },
-    function error (msg) { console.log('Error retrieving position', error) },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 })
+      parsePlaces(pos)
+      watchUserPosition()
+    }, error =>{
+      console.log('Error retrieving position', error)
+    }, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 27000
+    })
+  }
+
+  // continually update as user location changes
+  function watchUserPosition() {
+    navigator.geolocation.watchPosition(pos => {
+      parsePlaces(pos)
+
+      if (debug) setDebugLocation(pos)
+      // todo: remove bus stops that are out of range
+      // todo: update info of bus stops that are already created
+    }, err => {
+      console.warn('ERROR(' + err.code + '): ' + err.message)
+    }, {
+      enableHighAccuracy: true,
+      timeout: 27000,
+      maximumAge: 0
+    })
   }
 
   // decide what bus stop nodes to display
-  function parsePlaces (userCoords) {
-    console.log(userCoords)
-    var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed
-
-    // for each bus stop, if it is within the maxDistance and isn't already displayed, create a node for it
+  function parsePlaces (pos) {
+    var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed in miles
+    // for each bus stop, if it is within the maxDistance, and isn't already displayed, create a node for it
     busStops.forEach(element => {
-      var distance = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude)
+      var distance = distanceBetweenCoords(element.lat, element.lng, pos.coords.latitude, pos.coords.longitude)
 
+      // if bus stop within max distance and hasn't been created yet
       if (distance <= maxDistance && displayedBusStopIds.find(id => id == element.id) == undefined) {
-        var scale = 10000 * (Math.pow(distance, 2.5) / 5) + 10
-        createBusStopNode(element, scale, userCoords)
+        var scale = 10000 * (Math.pow(distance, 2.5) / 5) + 10 // alter sizing of sign based on distance
+        createBusStopNode(element, scale, pos)
         displayedBusStopIds.push(element.id)
-
-        // debug info
-        console.log('Created ' + element.id + ' node! Distance: ' + distance.toFixed(5) + 'mi')
-        console.log('Bus stop coordinates: ', element.lat, element.lng)
-
-        document.getElementById('user-coords-display-text').innerHTML += '<br>Created ' + element.id + ' node! Distance: ' + distance.toFixed(5)
+        if (debug) {
+          writeDebug('Created ' + element.id + ' node')
+          console.log('create', element, distance.toFixed(5))
+        }
       }
     })
   }
 
   // add bus stop node to aframe scene
-  function createBusStopNode (element, scale, userCoords) {
+  function createBusStopNode (element, scale, pos) {
     const scene = document.querySelector('a-scene')
 
     // create node
@@ -90,7 +107,7 @@
     sign.appendChild(signLabelBackdrop)
 
     // create distance label
-    var distanceMeters = distanceBetweenCoords(element.lat, element.lng, userCoords.latitude, userCoords.longitude, 'meters').toFixed(1)
+    var distanceMeters = distanceBetweenCoords(element.lat, element.lng, pos.coords.latitude, pos.coords.longitude, 'meters').toFixed(1)
     const signDistanceLabel = document.createElement('a-text')
     signDistanceLabel.setAttribute('value', `${distanceMeters} m`)
     signDistanceLabel.setAttribute('width', 80)
@@ -112,18 +129,39 @@
     return node
   }
 
-  function watchUserPosition() {
-    navigator.geolocation.watchPosition(pos => {
-      parsePlaces(pos.coords)
-      // todo: remove bus stops that are out of range
-      // todo: update info of bus stops that are already created
-    }, err => {
-      console.warn('ERROR(' + err.code + '): ' + err.message)
-    }, {
-      enableHighAccuracy: true,
-      timeout: 27000,
-      maximumAge: 0
-    })
+  // debug functions
+
+  function enableDebug() {
+    if (debug) {
+      document.getElementById('debug-panel').classList.remove('hide-me')
+      // watch device compass
+      window.addEventListener('deviceorientation', function(e) {
+        let compAccEl = document.getElementById('user-comp-acc')
+        updateDebugText(compAccEl, e.webkitCompassAccuracy + 'deg')
+    }, false);
+    }
+  }
+
+  function setDebugLocation(pos) {
+    // debug info, display user coords, gps accuracy, and create google maps link
+    let latEl = document.getElementById('user-coords-lat')
+    let lonEl = document.getElementById('user-coords-lng')
+    let accEl = document.getElementById('user-coords-acc')
+    updateDebugText(latEl, pos.coords.latitude)
+    updateDebugText(lonEl, pos.coords.longitude)
+    updateDebugText(accEl, pos.coords.accuracy)
+    document.getElementById('user-location-link').href = 'https://www.google.com/maps/search/?api=1&query=' + pos.coords.latitude + ',' + pos.coords.longitude
+  }
+
+  function writeDebug(message) {
+    document.getElementById('user-coords-display-text').innerHTML += '<br>' + message
+  }
+
+  function updateDebugText(e, newVal) {
+    if (e.innerHTML != newVal) {
+      resetAnimation(e)
+    }
+    e.innerHTML = newVal
   }
 
   // utility functions
@@ -159,5 +197,12 @@
   function timeToWalk (meters) {
     var metersPerMinute = 80 // human walking speed
     return parseFloat(meters) / metersPerMinute
+  }
+
+  function resetAnimation (e) {
+    e.style.animation = 'none';
+    setTimeout(function() {
+      e.style.animation = '';
+    }, 1);
   }
 })()
