@@ -33,10 +33,7 @@
   function watchUserPosition() {
     navigator.geolocation.watchPosition(pos => {
       parsePlaces(pos)
-
       if (debug) setDebugLocation(pos)
-      // todo: remove bus stops that are out of range
-      // todo: update info of bus stops that are already created
     }, err => {
       console.warn('ERROR(' + err.code + '): ' + err.message)
     }, {
@@ -50,11 +47,22 @@
   function parsePlaces (pos) {
     var maxDistance = 0.25 // how close bus stop needs to be to user to be displayed in miles
     // for each bus stop, if it is within the maxDistance, and isn't already displayed, create a node for it
+
     busStops.forEach(element => {
       var distance = distanceBetweenCoords(element.lat, element.lng, pos.coords.latitude, pos.coords.longitude)
-
-      // if bus stop within max distance and hasn't been created yet
-      if (distance <= maxDistance && displayedBusStopIds.find(id => id == element.id) == undefined) {
+      if (displayedBusStopIds.find(id => id == element.id) != undefined) {
+        // remove bus stops
+        if (distance > maxDistance) {
+          var node = document.getElementById(`busstop-${element.id}`);
+          node.parentNode.removeChild(node);
+        }
+        // update bus stops
+        else {
+          // todo: update attribute tags with new info / make a separate function?
+        }
+      }
+      else if (distance <= maxDistance) {
+        // create bus stop nodes
         var scale = 10000 * (Math.pow(distance, 2.5) / 5) + 10 // alter sizing of sign based on distance
         createBusStopNode(element, scale, pos)
         displayedBusStopIds.push(element.id)
