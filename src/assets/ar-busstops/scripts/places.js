@@ -53,12 +53,12 @@
       if (displayedBusStopIds.find(id => id == element.id) != undefined) {
         // remove bus stops
         if (distance > maxDistance) {
-          var node = document.getElementById(`busstop-${element.id}`);
-          node.parentNode.removeChild(node);
+          var node = document.getElementById(`busstop-${element.id}`)
+          node.parentNode.removeChild(node)
         }
         // update bus stops
         else {
-          // todo: update attribute tags with new info / make a separate function?
+          updateNodeText(element, pos);
         }
       }
       else if (distance <= maxDistance) {
@@ -135,6 +135,13 @@
     // todo
 
     return node
+  }
+
+  function updateNodeText(element, pos) {
+    var signLabels = document.querySelectorAll(`#busstop-${element.id} > a-image > a-plane > a-text`)
+    var distanceMeters = distanceBetweenCoords(element.lat, element.lng, pos.coords.latitude, pos.coords.longitude, 'meters').toFixed(1)
+    signLabels[0].setAttribute('value', `${distanceMeters} m`) // distance label
+    signLabels[1].setAttribute('value', `${timeToWalk(distanceMeters).toFixed(1)} min`) // time estimate label
   }
 
   // debug functions
