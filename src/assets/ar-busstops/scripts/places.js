@@ -16,21 +16,6 @@
   function busStopLocationsReceived(e) {
     busStops = e.data
 
-    // parse immediatly
-    navigator.geolocation.getCurrentPosition(pos => {
-      parsePlaces(pos)
-      watchUserPosition()
-    }, error =>{
-      console.log('Error retrieving position', error)
-    }, {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 27000
-    })
-  }
-
-  // continually update as user location changes
-  function watchUserPosition() {
     navigator.geolocation.watchPosition(pos => {
       parsePlaces(pos)
       if (debug) setDebugLocation(pos)
