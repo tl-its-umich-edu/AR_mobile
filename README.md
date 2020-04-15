@@ -65,6 +65,9 @@ screen. Close and reopen the app to fix this.
 bus stops to be shown in the wrong direction. Use a recent smartphone for best
 results.
 
+- Geolocation accuracy depends on device hardware and can cause bus stops close
+to the user to be misplaced.
+
 ## Other useful commands for dev
 
 `$ ionic cordova build android`
