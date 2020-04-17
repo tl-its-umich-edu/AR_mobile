@@ -2,7 +2,39 @@
 
 This is a demonstration of AR running in Ionic 4 for mobile devices.
 
-## Building for android
+## Building as a PWA for Firebase
+
+Based on [this guide](https://ionicframework.com/docs/angular/pwa).
+
+1. Make sure you have the Angular CLI and the Firebase CLI installed.
+
+`$ npm install -g @angular/cli`
+
+`$ npm install -g firebase-tools`
+
+2. Set up the project for hosting from Firebase
+
+`$ firebase init`
+
+Select the hosting option when asked what features to set up for this folder.
+
+Choose an existing project or create a new one to host the app.
+
+Enter `www` as the public directory.
+
+Choose **Yes** when asked to configure as a single-page app.
+
+Choose **No** if asked to overwrite index.html.
+
+3. Build the app
+
+`$ ionic build --prod`
+
+4. Publish the app
+
+`$ firebase deploy`
+
+## Building as a native app for Android
 
 1. Make sure you have
 [JDK 1.8.x](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
@@ -23,13 +55,18 @@ session.
 
 ## Known issues
 
-- If a page with AR is opened before permissions to camera/gps are given,
-permissions have to be accepted and then the page must be reopened.
-
 - Reopening pages may not initialize the camera properly and will show a white
 screen instead. Close and reopen the app to fix this.
 
-- Bus signs may be shown pointing in the wrong direction.
+- If location or camera permissions are denied, then the app will show a white
+screen. Close and reopen the app to fix this.
+
+- On older devices (especially tablets), compass accuracy may be poor causing
+bus stops to be shown in the wrong direction. Use a recent smartphone for best
+results.
+
+- Geolocation accuracy depends on device hardware and can cause bus stops close
+to the user to be misplaced.
 
 ## Other useful commands for dev
 
@@ -38,3 +75,9 @@ screen instead. Close and reopen the app to fix this.
 `$ ionic cordova run android --device --no-build`
 
 `$ adb devices`
+
+`$ ionic build --prod && firebase deploy`
+
+`$ ./ngrok http 8100 -host-header="localhost:8100"`
+
+`$ ng run app:serve --port=8100 --disable-host-check`

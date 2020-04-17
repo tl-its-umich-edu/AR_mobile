@@ -5,16 +5,27 @@ body {
     overflow: hidden;
 }
 
-.user-coords-display {
+.hide-me {
+    display: none;
+}
+
+#debug-panel {
     position: absolute;
     top: 0;
     right: 0;
     background-color: #000000aa;
     color: #fff;
 }
-.user-coords-display p {
+#debug-panel p {
     margin: 5px 8px;
 }
-.user-coords-display p a {
+#debug-panel p a {
     color: #86cfff;
+}
+#debug-panel p a span {
+    animation: hightlight-update 0.8s;
+}
+@keyframes hightlight-update {
+    0%{ background-color: #f00; }
+    100%{ background-color: transparent; }
 }

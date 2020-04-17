@@ -1,3 +1,5 @@
 export const environment = {
-  production: true
+  production: true,
+
+  busServiceApiKey: 'PASTE YOUR BUS SERVICE API KEY HERE'
 };
